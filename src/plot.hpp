@@ -11,6 +11,10 @@
 struct Sample { double time; std::vector<double> values; };
 class Plot : public QWidget {
 public:
+    void setPressureRange(double minimum, double maximum) {
+        if (!std::isfinite(minimum) || !std::isfinite(maximum) || minimum >= maximum) return;
+        minimumPressure = minimum; maximumPressure = maximum; update();
+    }
     void clear() { samples.clear(); update(); }
     const std::deque<Sample> &data() const { return samples; }
     explicit Plot(QWidget *parent = nullptr) : QWidget(parent) { setMinimumSize(600, 350); }
@@ -20,6 +24,7 @@ public:
     }
 private:
     std::deque<Sample> samples;
+    double minimumPressure = 0, maximumPressure = 300.025;
 protected:
     void paintEvent(QPaintEvent *) override {
         QPainter p(this);
@@ -27,18 +32,16 @@ protected:
         p.fillRect(rect(), QColor("#15202b"));
         const QRectF area(85, 30, width()-110, height()-95);
         p.setPen(QColor("#ccd6e0"));
-        p.drawText(QRectF(5, 0, width()-10, 25), Qt::AlignCenter, "Valores recebidos · últimas 1000 amostras");
+        p.drawText(QRectF(5, 0, width()-10, 25), Qt::AlignCenter, "Pressão (mmHg) · últimas 1000 amostras · escala fixa");
         if (samples.empty()) {
-            p.drawText(area, Qt::AlignCenter, "Conecte o Arduino ou inicie a demonstração");
+            p.drawText(area, Qt::AlignCenter, "Calibre e conecte o Arduino ou inicie a demonstração");
             return;
         }
-        double low = std::numeric_limits<double>::max(), high = -low;
+        const double low = minimumPressure, high = maximumPressure;
         std::size_t columns = 0;
         for (const auto &s : samples) {
             columns = std::max(columns, s.values.size());
-            for (double v : s.values) { low = std::min(low, v); high = std::max(high, v); }
         }
-        if (low == high) { const double margin = std::max(1.0, std::abs(low)*0.05); low -= margin; high += margin; }
         // Scale before subtracting to avoid overflow for opposite large values.
         const double scale = std::max({1.0, std::abs(low), std::abs(high)});
         const double span = high/scale-low/scale;
@@ -72,7 +75,7 @@ protected:
                    QString("Tempo desde a conexão (s): %1 — %2").arg(first,0,'f',1).arg(samples.back().time,0,'f',1));
         for (std::size_t i=0;i<columns;++i) {
             p.setPen(colors[i%6]);
-            p.drawText(85+int(i%8)*90,height()-25+int(i/8)*18,QString("Série %1").arg(i+1));
+            p.drawText(85+int(i%8)*130,height()-25+int(i/8)*18,QString("Pressão %1").arg(i+1));
         }
     }
 };
