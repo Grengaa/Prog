@@ -1,0 +1,23 @@
+VALIDACAO DE SOFTWARE
+
+Compilacao e link concluídos para ATmega328P, 16 MHz, variante standard do Arduino Uno, com Arduino AVR Core 1.8.8 e avr-gcc 7.3.0-atmel3.6.1-arduino7.
+A compilacao foi feita diretamente com o compilador AVR e os fontes oficiais do core; nao pelo comando de compilacao da IDE.
+Configuracao entregue: calibracao nao preenchida e motor bloqueado.
+Tamanho dessa configuracao: 6286 bytes de programa e 253 bytes de dados estaticos. A memoria pode mudar depois de habilitar/configurar os parametros; isso nao mede uso maximo de pilha.
+
+Testes automatizados do controlador em C++11 passaram:
+- Bloqueio da partida sem sensor ou com pressao inicial no limiar.
+- Compressao, acionamento do retorno pelo limiar e pausa antes de inverter.
+- Fim do retorno por tempo, pausa e novo ciclo.
+- Falha de sensor em todas as fases ativas desabilita o comando.
+- Falha permanece registrada e nao reinicia sozinha.
+- Tempo maximo de compressao interrompe o acionamento.
+- Pressao NaN interrompe o acionamento.
+- Contagem de tempo funciona na passagem de millis() pelo limite de 32 bits.
+- Configuracao incompleta/invalida bloqueia o inicio.
+
+Nao realizados: upload em placa fisica, teste eletrico do HX710B, calibracao real, medicao da corrente do motor, teste de inversao/inercia, pressao e repetibilidade dos ciclos, teste de watchdog no bootloader da placa do grupo. O software nao foi validado como equipamento medico.
+
+O arquivo testes/test_controle.cpp pode ser executado a partir da pasta extraida com:
+g++ -std=c++11 -Wall -Wextra -Werror -I. testes/test_controle.cpp -o teste_controle
+./teste_controle
