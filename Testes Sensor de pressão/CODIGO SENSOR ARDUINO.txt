@@ -1,0 +1,35 @@
+// Sensor de pressão 4–20mA (0–150 psi) com resistor de 250 ohms     
+// Resistor de 250.0 ohms
+// 0.004 corrente minima
+// tensão de referência (5V) 5.0
+// ADC de 10 bits (0–1023) 1023 conversor analogico digital (transforma tensão em um numero inteiro)
+const int pinoSensor = A5;  
+
+// Faixa do sensor
+const float pressaoMin = 0.0;    // psi
+const float pressaoMax = 150.0;  // psi
+const float correnteMax = 0.020; // 20 mA = 0.020 A
+
+void setup() {
+  Serial.begin(9600);
+  Serial.println("=== Leitura do Sensor de Pressao (0-150 psi) ===");
+}
+
+void loop() {
+  int leituraADC = analogRead(pinoSensor);               
+  float tensao = (leituraADC * 5.0) / 1023;     // Converte para volts
+  float corrente = tensao / 250.0;                 // Corrente em amperes
+  float pressao = (corrente - 0.004) * (pressaoMax / (0.020 - 0.004));
+
+  if (pressao < 0) pressao = 0;
+
+  Serial.print("Tensao: ");
+  Serial.print(tensao, 5);
+  Serial.print(" V  |  ");
+
+  Serial.print("Pressao: ");
+  Serial.print(pressao, 5);
+  Serial.println(" psi");
+
+  delay(1000); // 1 segundo
+}
